@@ -141,8 +141,7 @@ def main():
 			sunet, score = line_lst[1].lower(), line_lst[10]
 			if not students.checkExists(sunet):
 				raise RuntimeError('Student '+sunet+' does not exist in quiz2?')
-			#students.addGrade(sunet, score)
-			students.addGrade(sunet, '0')
+			students.addGrade(sunet, score)
 
 
 	# Process Project
@@ -185,7 +184,8 @@ def main():
 			if num_hw != 0:
 				if not students.checkExists(sunet):
 					raise RuntimeError('Student '+sunet+' does not exist in project2?')
-			students.addGrade(sunet, score)				
+			#students.addGrade(sunet, score)				
+			students.addGrade(sunet, '0')
 
 
 	if not students.checkConsistent():
