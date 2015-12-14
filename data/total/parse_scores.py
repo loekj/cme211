@@ -184,8 +184,7 @@ def main():
 			if num_hw != 0:
 				if not students.checkExists(sunet):
 					raise RuntimeError('Student '+sunet+' does not exist in project2?')
-			#students.addGrade(sunet, score)				
-			students.addGrade(sunet, '0')
+			students.addGrade(sunet, score)				
 
 
 	if not students.checkConsistent():
