@@ -1,4 +1,5 @@
 import os,sys
+import utils
 
 HWFILES = ['hw1','hw2','hw3','hw4','hw5','hw6']
 QUIZFILES = ['quiz1','quiz2']
@@ -6,9 +7,14 @@ PROJECTFILES = ['project1','project2']
 
 class Students(object):
 
-	def __init__(self, headers):
-		self.headers = ['sunet']+headers+['total']
+	def __init__(self, headers, map_TA):
+		self.headers = ['sunet']+headers#+['total']+['normalized']+['TA']
 		self.student_dict = {}
+
+		with open(map_TA) as f:
+			map_TA_list = f.readlines()
+
+		self.map_TA = dict( (ta.strip().split()[0], ta.strip().split()[-1]) for ta in map_TA_list)
 
 	def addGrade(self, sunet, grade):
 		if not sunet:
@@ -31,7 +37,56 @@ class Students(object):
 				return False
 		return True
 
+	def addTotal(self):
+		self.headers.append('total')
+		for sunet, grade_lst in self.student_dict.iteritems():
+			self.student_dict[sunet].append(str(int(sum([float(el) for el in grade_lst]))))
+	
+	def addNormalized(self):
+		# get total per TA, but drop outliers
+		TA_scores = {}
+		for sunet, scores in self.student_dict.iteritems():
+			TA = self.map_TA[sunet]
+			if TA not in TA_scores:
+				TA_scores[TA] = [float(scores[-1])]
+			else:
+				TA_scores[TA].append(float(scores[-1])
+
+		# get mean total and per TA
+		tot_mean = 0.0
+		TA_mean = {}
+		for TA, scores in TA_scores.iteritems():
+			# get rid of outliers
+			sort_scores = sorted(scores)
+			Q1 = sort_scores[int(len(scores) * (1/4))]
+			Q3 = sort_scores[int(len(scores) * (3/4))]
+			IQR = Q3 - Q1
+			no_out = [score for score in sort_scores if score > (Q1 - 1.5*IQR) and score < (Q3 + 1.5*IQR)]
+
+			mean = utils.mean(no_out)
+			tot_mean += mean
+			TA_mean[TA] = mean
+
+		# mean everyone should adjust to
+		avg_mean = tot_mean / float(len(TA_mean))
+		TA_adjust = {}
+		for TA in TA_mean.keys():
+			TA_adjust[TA] = avg_mean - TA_mean[TA] 
+
+		self.headers.append('normalized')
+		for sunet, grade_lst in self.student_dict.iteritems():
+			self.student_dict[sunet].append(float(self.student_dict[sunet][-1]) + TA_adjust[self.map_TA[sunet]])
+			
+
+	def addTA(self):
+		self.headers.append('TA')
+		for sunet, TA in self.map_TA.iteritems():
+			self.student_dict[sunet].append(TA)		
+
 	def toCSV(self):
+		self.addTotal()
+		self.addNormalized()
+		self.addTA()
 		with open('gradebook.csv', 'w') as f:
 			# write headers
 			f.write(','.join(self.headers))
@@ -55,6 +110,7 @@ def main():
 	hw_paths = map(lambda x: '../'+x+'/Scores.txt',toList(HWFILES))
 	quiz_paths = map(lambda x: '../'+x+'/'+x+'.csv',toList(QUIZFILES))
 	project_paths = map(lambda x: '../'+x+'/Scores.txt',toList(PROJECTFILES))
+	map_TA = '/afs/ir/class/cme211/git/repos_project_p2/TA_assignments.txt'
 
 	if not all(os.path.exists(l) for l in hw_paths):
 		raise RuntimeError('HW files do not exist!')
@@ -63,11 +119,13 @@ def main():
 		raise RuntimeError('QUIZ files do not exist!')		
 	
 	if not all(os.path.exists(l) for l in project_paths):
-		raise RuntimeError('PROJECT files do not exist!')				
+		raise RuntimeError('PROJECT files do not exist!')	
 
+	if not os.path.exists(map_TA):
+		raise RuntimeError(map_ta + 'does not exist!')
 
 	# Init object from class, headers are in order of processing
-	students = Students(HWFILES+QUIZFILES+PROJECTFILES)
+	students = Students(HWFILES+QUIZFILES+PROJECTFILES, map_TA)
 
 	# Process HWs
 	for num_hw, hw in enumerate(hw_paths):
