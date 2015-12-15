@@ -67,7 +67,7 @@ class Students(object):
 				TA_scores[TA] = int(scores[-1]) - int(scores[6]) - int(scores[7])
 			else:
 				TA_scores[TA].append(int(scores[-1]) - int(scores[6]) - int(scores[7]))
-				
+
 		# get mean total and mean per TA
 		tot_mean = 0.0
 		TA_mean = {}
@@ -104,6 +104,7 @@ class Students(object):
 			self.student_dict[sunet].append(TA)		
 
 	def toCSV(self):
+
 		self.addTotal()
 		self.addNormalized()
 		self.addTA()
@@ -273,6 +274,11 @@ def main():
 
 	if not students.checkConsistent():
 		raise RuntimeError('Dictionary is not consistent. Different number of grades per student...')
+
+	# Decide which hw to drop
+	students.setDropDict()
+
+	# Calc total, normalized etc.. and write to CSV
 	students.toCSV()
 
 if __name__=='__main__':
