@@ -4,6 +4,7 @@ import utils
 HWFILES = ['hw1','hw2','hw3','hw4','hw5','hw6']
 QUIZFILES = ['quiz1','quiz2']
 PROJECTFILES = ['project1','project2']
+WEIGHTS = [0.5,0.125,0.25] #hws, quizes, project
 
 class Students(object):
 
@@ -34,7 +35,7 @@ class Students(object):
 			score_list = self.student_dict[sunet][:6]
 
 			# drop idx num
-			self.student_drop[sunet] = self.student_dict[sunet].index(str(min([int(score) for score in score_list])))
+			self.student_drop[sunet] = self.student_dict[sunet].index(min(score_list))
 
 	def checkExists(self, sunet):
 		return bool(sunet in self.student_dict)
@@ -54,8 +55,8 @@ class Students(object):
 				# skip over minimum idx
 				if idx == self.student_drop[sunet]:
 					continue
-				sum_scores += int(score)
-			self.student_dict[sunet].append(str(sum_scores))
+				sum_scores += score
+			self.student_dict[sunet].append(sum_scores)
 	
 	def addNormalized(self):
 		# get total scores list per TA, but drop outliers and quiz scores in calculation
@@ -64,9 +65,9 @@ class Students(object):
 			TA = self.map_TA[sunet]
 			if TA not in TA_scores:
 				# -1 is total score minus minimum, 6 and 7 is quizzes
-				TA_scores[TA] = [int(scores[-1]) - int(scores[6]) - int(scores[7])]
+				TA_scores[TA] = [scores[-1] - scores[6] - scores[7]]
 			else:
-				TA_scores[TA].append(int(scores[-1]) - int(scores[6]) - int(scores[7]))
+				TA_scores[TA].append(scores[-1] - scores[6] - scores[7])
 
 		# get mean total and mean per TA
 		tot_mean = 0.0
@@ -91,12 +92,12 @@ class Students(object):
 		print("\nAdjust score by:")
 		for TA in TA_mean.keys():
 			TA_adjust[TA] = avg_mean - TA_mean[TA] 
-			print("TA:\t\t{0}\nadjust score:\t{1}".format(TA, float(TA_adjust[TA])))
+			print("TA:\t\t{0}\nadjust score:\t{1}".format(TA, TA_adjust[TA]))
 		
 		
 		self.headers.append('normalized')
 		for sunet, grade_lst in self.student_dict.iteritems():
-			self.student_dict[sunet].append(str(int(round(float(self.student_dict[sunet][-1]) + TA_adjust[self.map_TA[sunet]]))))
+			self.student_dict[sunet].append(int(round(self.student_dict[sunet][-1] + TA_adjust[self.map_TA[sunet]])))
 			
 
 	def addTA(self):
@@ -120,7 +121,7 @@ class Students(object):
 			f.write(','.join(self.headers))
 			f.write('\n')
 			for sunet, grade_lst in self.student_dict.iteritems():
-				write_string = sunet + ',' + ','.join(grade_lst) + ',,,'
+				write_string = sunet + ',' + ','.join([str(col) for col in grade_lst]) + ',,,'
 				f.write(write_string)
 				f.write('\n')
 
@@ -175,7 +176,7 @@ def main():
 				if num_hw != 0:
 					if not students.checkExists(sunet):
 						raise RuntimeError('Student '+sunet+' does not exist in checking hw '+str(num_hw+1))
-				students.addGrade(sunet, score)
+				students.addGrade(sunet, WEIGHTS[0]*float(score))
 
 
 	# Process QUIZs
@@ -202,7 +203,7 @@ def main():
 			sunet, score = line_lst[1].lower(), line_lst[9]
 			if not students.checkExists(sunet):
 				raise RuntimeError('Student '+sunet+' does not exist in quiz1?')
-			students.addGrade(sunet, score)
+			students.addGrade(sunet, WEIGHTS[1]*float(score))
 
 
 	with open(quiz2, 'r') as f:
@@ -227,7 +228,7 @@ def main():
 			sunet, score = line_lst[1].lower(), line_lst[10]
 			if not students.checkExists(sunet):
 				raise RuntimeError('Student '+sunet+' does not exist in quiz2?')
-			students.addGrade(sunet, score)
+			students.addGrade(sunet, WEIGHTS[1]*float(score))
 
 
 	# Process Project
@@ -250,7 +251,7 @@ def main():
 			if num_hw != 0:
 				if not students.checkExists(sunet):
 					raise RuntimeError('Student '+sunet+' does not exist in project1?')
-			students.addGrade(sunet, score)	
+			students.addGrade(sunet, WEIGHTS[2]*float(score))
 
 	with open(project2, 'r') as f:
 		for line in f:
@@ -270,7 +271,7 @@ def main():
 			if num_hw != 0:
 				if not students.checkExists(sunet):
 					raise RuntimeError('Student '+sunet+' does not exist in project2?')
-			students.addGrade(sunet, score)				
+			students.addGrade(sunet, WEIGHTS[2]*float(score))	
 
 
 	if not students.checkConsistent():
