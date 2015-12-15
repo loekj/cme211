@@ -16,18 +16,18 @@ class Students(object):
 
 		self.map_TA = dict( (ta.strip().split()[0], ta.strip().split()[-1]) for ta in map_TA_list)
 
-	def addGrade(self, sunet, grade, weight):
+	def addGrade(self, sunet, grade):
 		if not sunet:
 			return
 		if not grade:
 			grade = '0'
-		grade = float(grade)*weight
+		grade = float(grade)
 		if sunet in self.student_dict:
 			self.student_dict[sunet].append(grade)
 		else:
 			self.student_dict[sunet] = [grade]
 
-	def dropMin(self)
+	def dropMin(self):
 		for sunet in self.student_dict.keys():
 			# only include hws
 			score_list = self.student_dict[sunet][:6]
@@ -38,11 +38,11 @@ class Students(object):
 	def getHWscore(self, weight):
 		for sunet in self.student_dict.keys():
 			rem_scores = self.student_dict[sunet][5:]
-			self.student_dict[sunet] = [weight*sum(self.student_dict[sunet][:5])] + rem_scores
+			self.student_dict[sunet] = [weight*(float(sum(self.student_dict[sunet][:5]))/5)] + rem_scores
 
 	def getQuizScore(self, weight):
 		for sunet in self.student_dict.keys():
-			self.student_dict[sunet][1] = weight*(self.student_dict[sunet][1] + self.student_dict[sunet][2])
+			self.student_dict[sunet][1] = weight*(float(self.student_dict[sunet][1] + self.student_dict[sunet][2])/2)
 			self.student_dict[sunet].pop(2)
 
 	def getProjectScore(self, weight):
@@ -161,7 +161,7 @@ def main():
 		raise RuntimeError(map_ta + 'does not exist!')
 
 	# Init object from class, headers are in order of processing
-	students = Students(['HWs', 'QUIZs', 'PROJECT'])
+	students = Students(['HWs', 'QUIZs', 'PROJECT'], map_TA)
 
 	# Process HWs
 	for num_hw, hw in enumerate(hw_paths):
@@ -210,7 +210,7 @@ def main():
 			sunet, score = line_lst[1].lower(), line_lst[9]
 			if not students.checkExists(sunet):
 				raise RuntimeError('Student '+sunet+' does not exist in quiz1?')
-			students.addGrade(studentset, score)
+			students.addGrade(sunet, score)
 
 	with open(quiz2, 'r') as f:
 		print('Burning line "'+f.readline()+'"')
