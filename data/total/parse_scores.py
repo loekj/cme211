@@ -50,7 +50,7 @@ class Students(object):
 			if TA not in TA_scores:
 				TA_scores[TA] = [float(scores[-1])]
 			else:
-				TA_scores[TA].append(float(scores[-1])
+				TA_scores[TA].append(float(scores[-1]))
 
 		# get mean total and per TA
 		tot_mean = 0.0
@@ -58,24 +58,26 @@ class Students(object):
 		for TA, scores in TA_scores.iteritems():
 			# get rid of outliers
 			sort_scores = sorted(scores)
-			Q1 = sort_scores[int(len(scores) * (1/4))]
-			Q3 = sort_scores[int(len(scores) * (3/4))]
+			Q1 = sort_scores[int(len(scores) * (1.0/4))]
+			Q3 = sort_scores[int(len(scores) * (3.0/4))]
 			IQR = Q3 - Q1
 			no_out = [score for score in sort_scores if score > (Q1 - 1.5*IQR) and score < (Q3 + 1.5*IQR)]
-
+			
 			mean = utils.mean(no_out)
 			tot_mean += mean
 			TA_mean[TA] = mean
-
+		
 		# mean everyone should adjust to
 		avg_mean = tot_mean / float(len(TA_mean))
 		TA_adjust = {}
 		for TA in TA_mean.keys():
 			TA_adjust[TA] = avg_mean - TA_mean[TA] 
-
+			print("TA:\t\t{0}\nadjust score:\t{1}".format(TA, float(TA_adjust[TA])))
+		
+		
 		self.headers.append('normalized')
 		for sunet, grade_lst in self.student_dict.iteritems():
-			self.student_dict[sunet].append(float(self.student_dict[sunet][-1]) + TA_adjust[self.map_TA[sunet]])
+			self.student_dict[sunet].append(str(float(self.student_dict[sunet][-1]) + TA_adjust[self.map_TA[sunet]]))
 			
 
 	def addTA(self):
@@ -87,12 +89,14 @@ class Students(object):
 		self.addTotal()
 		self.addNormalized()
 		self.addTA()
+
+		self.headers.insert(0,'sunet')
 		with open('gradebook.csv', 'w') as f:
 			# write headers
 			f.write(','.join(self.headers))
 			f.write('\n')
 			for sunet, grade_lst in self.student_dict.iteritems():
-				write_string = sunet + ',' + ','.join(grade_lst) + ',' + str(int(sum([float(el) for el in grade_lst])))
+				write_string = sunet + ',' + ','.join(grade_lst)
 				f.write(write_string)
 				f.write('\n')
 
