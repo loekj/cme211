@@ -34,7 +34,7 @@ class Students(object):
 			score_list = self.student_dict[sunet][:6]
 
 			# drop idx num
-			self.student_drop[sunet] = self.student_dict.index(min(score_list))
+			self.student_drop[sunet] = self.student_dict[sunet].index(str(min([int(score) for score in score_list])))
 
 	def checkExists(self, sunet):
 		return bool(sunet in self.student_dict)
@@ -53,10 +53,9 @@ class Students(object):
 			for idx, score in enumerate(grade_lst):
 				# skip over minimum idx
 				if idx == self.student_drop[sunet]:
-					print('dropped score idx+1: ' + str(idx+1) + ': ' + str(grade_lst[idx]))
 					continue
-				sum += int(score)
-			self.student_dict[sunet].append(str(sum))
+				sum_scores += int(score)
+			self.student_dict[sunet].append(str(sum_scores))
 	
 	def addNormalized(self):
 		# get total scores list per TA, but drop outliers and quiz scores in calculation
@@ -64,7 +63,8 @@ class Students(object):
 		for sunet, scores in self.student_dict.iteritems():
 			TA = self.map_TA[sunet]
 			if TA not in TA_scores:
-				TA_scores[TA] = int(scores[-1]) - int(scores[6]) - int(scores[7])
+				# -1 is total score minus minimum, 6 and 7 is quizzes
+				TA_scores[TA] = [int(scores[-1]) - int(scores[6]) - int(scores[7])]
 			else:
 				TA_scores[TA].append(int(scores[-1]) - int(scores[6]) - int(scores[7]))
 
@@ -72,6 +72,7 @@ class Students(object):
 		tot_mean = 0.0
 		TA_mean = {}
 		for TA, scores in TA_scores.iteritems():
+
 			# get rid of outliers
 			sort_scores = sorted(scores)
 			Q1 = sort_scores[int(len(scores) * (1.0/4))]
