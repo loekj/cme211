@@ -8,7 +8,7 @@ PROJECTFILES = ['project1','project2']
 class Students(object):
 
 	def __init__(self, headers, map_TA):
-		self.headers = ['sunet']+headers#+['total']+['normalized']+['TA']
+		self.headers = headers#+['total']+['normalized']+['TA']
 		self.student_dict = {}
 
 		with open(map_TA) as f:
@@ -43,14 +43,14 @@ class Students(object):
 			self.student_dict[sunet].append(str(int(sum([float(el) for el in grade_lst]))))
 	
 	def addNormalized(self):
-		# get total per TA, but drop outliers
+		# get total per TA, but drop outliers and quiz scores
 		TA_scores = {}
 		for sunet, scores in self.student_dict.iteritems():
 			TA = self.map_TA[sunet]
 			if TA not in TA_scores:
-				TA_scores[TA] = [float(scores[-1])]
+				TA_scores[TA] = sum([float(score) for score in scores[:6]] + [float(scores[7]), float(scores[8])])
 			else:
-				TA_scores[TA].append(float(scores[-1]))
+				TA_scores[TA].append(sum([float(score) for score in scores[:6]] + [float(scores[7]), float(scores[8])]))
 
 		# get mean total and per TA
 		tot_mean = 0.0
