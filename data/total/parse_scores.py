@@ -43,7 +43,7 @@ class Students(object):
 			self.student_dict[sunet].append(str(int(sum([float(el) for el in grade_lst]))))
 	
 	def addNormalized(self):
-		# get total per TA, but drop outliers and quiz scores
+		# get total scores list per TA, but drop outliers and quiz scores in calculation
 		TA_scores = {}
 		for sunet, scores in self.student_dict.iteritems():
 			TA = self.map_TA[sunet]
@@ -52,7 +52,7 @@ class Students(object):
 			else:
 				TA_scores[TA].append(sum([float(score) for score in scores[:6]] + [float(scores[7]), float(scores[8])]))
 
-		# get mean total and per TA
+		# get mean total and mean per TA
 		tot_mean = 0.0
 		TA_mean = {}
 		for TA, scores in TA_scores.iteritems():
@@ -67,10 +67,11 @@ class Students(object):
 			tot_mean += mean
 			TA_mean[TA] = mean
 		
-		# mean everyone should adjust to
+		# mean everyone should adjust to (means together, divided by num TA's)
 		avg_mean = tot_mean / float(len(TA_mean))
+
 		TA_adjust = {}
-		print("\nAdjust score of sum(HWs) + project by:")
+		print("\nAdjust score by:")
 		for TA in TA_mean.keys():
 			TA_adjust[TA] = avg_mean - TA_mean[TA] 
 			print("TA:\t\t{0}\nadjust score:\t{1}".format(TA, float(TA_adjust[TA])))
@@ -95,6 +96,7 @@ class Students(object):
 
 		# adding empty cols to fill in excel/pages/googlesheets
 		self.headers += ['empty1','empty2','empty3']
+
 		with open('gradebook.csv', 'w') as f:
 			# write headers
 			f.write(','.join(self.headers))
@@ -177,7 +179,7 @@ def main():
 			line_lst = line.split(',')
 			line_lst = [word.strip() for word in line_lst]
 			if len(line_lst) < 2:
-				RuntimeError('Line in quiz is not formatted correctly: '+line)
+				raise RuntimeError('Line in quiz is not formatted correctly: '+line)
 
 			sunet, score = line_lst[1].lower(), line_lst[9]
 			if not students.checkExists(sunet):
@@ -202,7 +204,7 @@ def main():
 			line_lst = line.split(',')
 			line_lst = [word.strip() for word in line_lst]
 			if len(line_lst) < 2:
-				RuntimeError('Line in quiz is not formatted correctly: '+line)
+				raise RuntimeError('Line in quiz is not formatted correctly: '+line)
 
 			sunet, score = line_lst[1].lower(), line_lst[10]
 			if not students.checkExists(sunet):
@@ -224,7 +226,7 @@ def main():
 			line_lst = [word.strip() for word in line_lst]
 
 			if len(line_lst) < 2:
-				RuntimeError('Line in project1 is not formatted correctly: '+line)
+				raise RuntimeError('Line in project1 is not formatted correctly: '+line)
 
 			sunet, score = line_lst[0].lower(), line_lst[1]
 			if num_hw != 0:
@@ -244,7 +246,7 @@ def main():
 			line_lst = [word.strip() for word in line_lst]
 
 			if len(line_lst) < 2:
-				RuntimeError('Line in project2 is not formatted correctly: '+line)
+				raise RuntimeError('Line in project2 is not formatted correctly: '+line)
 
 			sunet, score = line_lst[0].lower(), line_lst[1]
 			if num_hw != 0:
