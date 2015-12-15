@@ -48,7 +48,7 @@ class Students(object):
 		for sunet, scores in self.student_dict.iteritems():
 			TA = self.map_TA[sunet]
 			if TA not in TA_scores:
-				TA_scores[TA] = sum([float(score) for score in scores[:6]] + [float(scores[7]), float(scores[8])])
+				TA_scores[TA] = [sum([float(score) for score in scores[:6]] + [float(scores[7]), float(scores[8])])]
 			else:
 				TA_scores[TA].append(sum([float(score) for score in scores[:6]] + [float(scores[7]), float(scores[8])]))
 
@@ -70,6 +70,7 @@ class Students(object):
 		# mean everyone should adjust to
 		avg_mean = tot_mean / float(len(TA_mean))
 		TA_adjust = {}
+		print("\nAdjust score of sum(HWs) + project by:")
 		for TA in TA_mean.keys():
 			TA_adjust[TA] = avg_mean - TA_mean[TA] 
 			print("TA:\t\t{0}\nadjust score:\t{1}".format(TA, float(TA_adjust[TA])))
@@ -77,7 +78,7 @@ class Students(object):
 		
 		self.headers.append('normalized')
 		for sunet, grade_lst in self.student_dict.iteritems():
-			self.student_dict[sunet].append(str(float(self.student_dict[sunet][-1]) + TA_adjust[self.map_TA[sunet]]))
+			self.student_dict[sunet].append(str(int(round(float(self.student_dict[sunet][-1]) + TA_adjust[self.map_TA[sunet]]))))
 			
 
 	def addTA(self):
