@@ -4,7 +4,8 @@ import utils
 HWFILES = ['hw1','hw2','hw3','hw4','hw5','hw6']
 QUIZFILES = ['quiz1','quiz2']
 PROJECTFILES = ['project1','project2']
-WEIGHTS = [0.5,0.125,0.25] #hws, quizes, project
+# one hw is dropped, so divided by 5
+WEIGHTS = [0.5/5,0.125/2,0.25/2] #hws, quizes, project
 
 class Students(object):
 
@@ -18,12 +19,12 @@ class Students(object):
 
 		self.map_TA = dict( (ta.strip().split()[0], ta.strip().split()[-1]) for ta in map_TA_list)
 
-	def addGrade(self, sunet, grade):
+	def addGrade(self, sunet, grade, weight):
 		if not sunet:
 			return
 		if not grade:
 			grade = '0'
-
+		grade = float(grade)*weight
 		if sunet in self.student_dict:
 			self.student_dict[sunet].append(grade)
 		else:
@@ -176,7 +177,7 @@ def main():
 				if num_hw != 0:
 					if not students.checkExists(sunet):
 						raise RuntimeError('Student '+sunet+' does not exist in checking hw '+str(num_hw+1))
-				students.addGrade(sunet, WEIGHTS[0]*float(score))
+				students.addGrade(sunet, score, WEIGHTS[0])
 
 
 	# Process QUIZs
@@ -203,8 +204,7 @@ def main():
 			sunet, score = line_lst[1].lower(), line_lst[9]
 			if not students.checkExists(sunet):
 				raise RuntimeError('Student '+sunet+' does not exist in quiz1?')
-			students.addGrade(sunet, WEIGHTS[1]*float(score))
-
+			students.addGrade(sunet, score, WEIGHTS[1])
 
 	with open(quiz2, 'r') as f:
 		print('Burning line "'+f.readline()+'"')
@@ -226,10 +226,10 @@ def main():
 				raise RuntimeError('Line in quiz is not formatted correctly: '+line)
 
 			sunet, score = line_lst[1].lower(), line_lst[10]
+			print(score)
 			if not students.checkExists(sunet):
 				raise RuntimeError('Student '+sunet+' does not exist in quiz2?')
-			students.addGrade(sunet, WEIGHTS[1]*float(score))
-
+			students.addGrade(sunet, score, WEIGHTS[1])
 
 	# Process Project
 	project1, project2 = project_paths[0], project_paths[1]
@@ -251,7 +251,7 @@ def main():
 			if num_hw != 0:
 				if not students.checkExists(sunet):
 					raise RuntimeError('Student '+sunet+' does not exist in project1?')
-			students.addGrade(sunet, WEIGHTS[2]*float(score))
+			students.addGrade(sunet, score, WEIGHTS[2])
 
 	with open(project2, 'r') as f:
 		for line in f:
@@ -271,7 +271,7 @@ def main():
 			if num_hw != 0:
 				if not students.checkExists(sunet):
 					raise RuntimeError('Student '+sunet+' does not exist in project2?')
-			students.addGrade(sunet, WEIGHTS[2]*float(score))	
+			students.addGrade(sunet, score, WEIGHTS[2])
 
 
 	if not students.checkConsistent():
