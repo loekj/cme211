@@ -92,12 +92,15 @@ class Students(object):
 		self.addTA()
 
 		self.headers.insert(0,'sunet')
+
+		# adding empty cols to fill in excel/pages/googlesheets
+		self.headers += ['empty1','empty2','empty3']
 		with open('gradebook.csv', 'w') as f:
 			# write headers
 			f.write(','.join(self.headers))
 			f.write('\n')
 			for sunet, grade_lst in self.student_dict.iteritems():
-				write_string = sunet + ',' + ','.join(grade_lst)
+				write_string = sunet + ',' + ','.join(grade_lst) + ',,,'
 				f.write(write_string)
 				f.write('\n')
 
