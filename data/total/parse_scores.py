@@ -10,6 +10,7 @@ class Students(object):
 	def __init__(self, headers, map_TA):
 		self.headers = headers#+['total']+['normalized']+['TA']
 		self.student_dict = {}
+		self.student_drop = {}
 
 		with open(map_TA) as f:
 			map_TA_list = f.readlines()
@@ -27,6 +28,14 @@ class Students(object):
 		else:
 			self.student_dict[sunet] = [grade]
 
+	def setDropDict(self):
+		for sunet in self.student_dict.keys():
+			# only include hws
+			score_list = self.student_dict[sunet][:6]
+
+			# drop idx num
+			self.student_drop[sunet] = self.student_dict.index(min(score_list))
+
 	def checkExists(self, sunet):
 		return bool(sunet in self.student_dict)
 
@@ -40,7 +49,14 @@ class Students(object):
 	def addTotal(self):
 		self.headers.append('total')
 		for sunet, grade_lst in self.student_dict.iteritems():
-			self.student_dict[sunet].append(str(int(sum([float(el) for el in grade_lst]))))
+			sum_scores = 0
+			for idx, score in enumerate(grade_lst):
+				# skip over minimum idx
+				if idx == self.student_drop[sunet]:
+					print('dropped score idx+1: ' + str(idx+1) + ': ' + str(grade_lst[idx]))
+					continue
+				sum += int(score)
+			self.student_dict[sunet].append(str(sum))
 	
 	def addNormalized(self):
 		# get total scores list per TA, but drop outliers and quiz scores in calculation
@@ -48,10 +64,10 @@ class Students(object):
 		for sunet, scores in self.student_dict.iteritems():
 			TA = self.map_TA[sunet]
 			if TA not in TA_scores:
-				TA_scores[TA] = [sum([float(score) for score in scores[:6]] + [float(scores[7]), float(scores[8])])]
+				TA_scores[TA] = int(scores[-1]) - int(scores[6]) - int(scores[7])
 			else:
-				TA_scores[TA].append(sum([float(score) for score in scores[:6]] + [float(scores[7]), float(scores[8])]))
-
+				TA_scores[TA].append(int(scores[-1]) - int(scores[6]) - int(scores[7]))
+				
 		# get mean total and mean per TA
 		tot_mean = 0.0
 		TA_mean = {}
